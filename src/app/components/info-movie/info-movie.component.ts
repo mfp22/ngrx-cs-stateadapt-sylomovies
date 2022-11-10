@@ -1,7 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { NgbRatingConfig } from '@ng-bootstrap/ng-bootstrap';
-import { from } from 'rxjs';
+import { Component } from '@angular/core';
+import { filter, map, Observable, switchMap } from 'rxjs';
 
 import { MovieModel } from 'src/app/models/movie.interface';
 import { SingleMovieService } from 'src/app/services/single-movie/single-movie.service';
@@ -13,52 +11,39 @@ import { environment } from 'src/environments/environment';
   templateUrl: './info-movie.component.html',
   styleUrls: ['./info-movie.component.scss'],
 })
-export class InfoMovieComponent implements OnInit {
-  cast!: any[];
-  movie!: MovieModel;
+export class InfoMovieComponent {
+  movieSelectedNull$ = this.store.movieSelected$.pipe(
+    filter((movie) => movie == null)
+  );
+  movieNotNull$ = this.store.movieSelected$.pipe(
+    filter((movie) => movie != null)
+  ) as Observable<MovieModel>;
+
+  movie$ = this.movieNotNull$.pipe(
+    switchMap((movie) => this.singleMovie.getMovieDetails(movie.id)),
+    map((data: any) => ({
+      ...data,
+      poster_path: `${environment.imageUrl}${data.poster_path}`,
+    }))
+  );
+
+  cast$ = this.movie$.pipe(
+    switchMap((movie) =>
+      this.singleMovie.getCast(movie.id).pipe(
+        map((data: any) =>
+          (Array.from(data.cast) as any[])
+            .filter((c) => c.profile_path != null)
+            .map((c) => ({
+              ...c,
+              profile_path: `${environment.imageUrl}${c.profile_path}`,
+            }))
+        )
+      )
+    )
+  );
+
   constructor(
     private store: AppStore,
-    private router: Router,
-    private singleMovie: SingleMovieService,
-    private config: NgbRatingConfig
-  ) {
-    config.max = 10;
-    config.readonly = true;
-  }
-
-  ngOnInit(): void {
-    this.initialice();
-  }
-
-  initialice() {
-    this.store.state$.subscribe((res) => {
-      let movie = res.movieSelected;
-      if (movie == null) {
-        this.router.navigate(['/']);
-      } else {
-        this.singleMovie.getMovieDetails(movie.id).subscribe((data: any) => {
-          this.movie = data;
-          this.movie.poster_path = `${environment.imageUrl}${this.movie.poster_path}`;
-        });
-        this.singleMovie.getCast(movie.id).subscribe((data: any) => {
-          this.cast = Array.from(data.cast);
-          this.cast = this.cast.filter((c) => c.profile_path != null);
-          this.cast.forEach((c) => {
-            c.profile_path = `${environment.imageUrl}${c.profile_path}`;
-          });
-        });
-      }
-    });
-  }
-  catch(err: any) {
-    console.log(err);
-  }
-
-  navigateBack() {
-    if (this.store.flag$) {
-      this.store.deleteMovies();
-      this.store.switchFlag(false);
-    }
-    this.router.navigate(['/']);
-  }
+    private singleMovie: SingleMovieService
+  ) {}
 }

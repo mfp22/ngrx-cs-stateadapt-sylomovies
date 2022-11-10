@@ -1,4 +1,5 @@
-<div class="container-movie-page" *ngIf="movie !== undefined">
+<app-navigate to="/" [when]="movieSelectedNull$"></app-navigate>
+<div class="container-movie-page" *ngIf="movie$ | async; let movie">
   <div class="single-movie-container">
     <div *ngIf="movie !== undefined">
       <div class="badge">
@@ -10,19 +11,23 @@
     <h3>{{ movie.original_title }}</h3>
     <div class="movie-details">
       <div class="vote-average">
-        <ngb-rating [rate]="movie.vote_average"></ngb-rating>
+        <ngb-rating
+          [rate]="movie.vote_average"
+          [max]="10"
+          [readonly]="true"
+        ></ngb-rating>
         <p>{{ movie.vote_average }}</p>
       </div>
     </div>
     <p>{{ movie.overview }}</p>
     <div class="button-ctn">
-      <button class="btn btn-outline-dark btn-sm" (click)="navigateBack()">
+      <button class="btn btn-outline-dark btn-sm" [routerLink]="'/'">
         Regresar
       </button>
     </div>
   </div>
 </div>
-<div class="cast-container" *ngIf="cast !== null">
+<div class="cast-container" *ngIf="cast$ | async; let cast">
   <div class="cast-list-cont">
     <div *ngFor="let ac of cast; let i = index" class="cast-card-container">
       <img src="{{ ac.profile_path }}" alt="{{ ac.name }}" class="cast-card" />
@@ -30,6 +35,6 @@
     </div>
   </div>
 </div>
-<div class="footer-cont" *ngIf="movie !== undefined">
+<div class="footer-cont" *ngIf="movie$ | async">
   <app-footer></app-footer>
 </div>

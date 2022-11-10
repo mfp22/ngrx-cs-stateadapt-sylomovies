@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { ComponentStore } from '@ngrx/component-store';
-import { Observable } from 'rxjs';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter, map, Observable, pairwise, tap } from 'rxjs';
 import { MovieModel } from 'src/app/models/movie.interface';
+import { ReactiveStore } from './reactive-store';
 
 export interface OrderState {
   movies: MovieModel[];
@@ -12,14 +13,28 @@ export interface OrderState {
 }
 
 @Injectable()
-export class AppStore extends ComponentStore<OrderState> {
-  constructor() {
+export class AppStore extends ReactiveStore<OrderState> {
+  constructor(private router: Router) {
     super({
       movies: [],
       movieSelected: null,
       search: [],
       flag: false,
       header: '',
+    });
+
+    const urlFromMovieDetailToHome$ = this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      pairwise(),
+      filter(
+        ([before, after]) =>
+          before.url === '/movie' && ['/home', '/'].includes(after.url)
+      )
+    );
+
+    this.react<AppStore>(this, {
+      deleteMovies: urlFromMovieDetailToHome$.pipe(map(() => undefined)),
+      switchFlag: urlFromMovieDetailToHome$.pipe(map(() => false)),
     });
   }
   saveMovies = this.updater((state: OrderState, movies: MovieModel[]) => ({
