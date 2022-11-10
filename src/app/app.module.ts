@@ -17,6 +17,7 @@ import { HomeComponent } from './components/home/home.component';
 import { SearchComponent } from './components/search/search.component';
 import { ResultsComponent } from './components/results/results.component';
 import { FooterComponent } from './components/footer/footer.component';
+import { NavigateComponent } from './components/navigate.component';
 
 @NgModule({
   declarations: [
@@ -40,6 +41,7 @@ import { FooterComponent } from './components/footer/footer.component';
     HttpClientModule,
     NgbModule,
     FormsModule,
+    NavigateComponent,
   ],
   providers: [],
   bootstrap: [AppComponent],
