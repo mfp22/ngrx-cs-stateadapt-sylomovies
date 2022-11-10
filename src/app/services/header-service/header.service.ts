@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormBuilder, Validators } from '@angular/forms';
 
 import { AppStore } from 'src/app/store/app.store';
 import { environment } from 'src/environments/environment';
@@ -12,7 +12,7 @@ export class HeaderService {
   searchUrl = environment.searchUrl;
   apiKey = environment.apiKey;
   language = environment.language;
-  constructor(private fb: FormBuilder, private http: HttpClient) {}
+  constructor(private fb: UntypedFormBuilder, private http: HttpClient) {}
 
   createForm() {
     return this.fb.group({
