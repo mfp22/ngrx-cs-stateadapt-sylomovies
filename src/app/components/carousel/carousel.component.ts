@@ -19,11 +19,11 @@ import { environment } from 'src/environments/environment';
 export class CarouselComponent implements OnInit {
   movies: MovieModel[] = [];
   paused = false;
-  unpauseOnArrow = false;
-  pauseOnIndicator = false;
-  pauseOnHover = true;
-  pauseOnFocus = true;
-  imageUrl = environment.imageUrl;
+  readonly unpauseOnArrow = false;
+  readonly pauseOnIndicator = false;
+  readonly pauseOnHover = true;
+  readonly pauseOnFocus = true;
+  readonly imageUrl = environment.imageUrl;
 
   @ViewChild('carousel', { static: true }) carousel!: NgbCarousel;
   constructor(
