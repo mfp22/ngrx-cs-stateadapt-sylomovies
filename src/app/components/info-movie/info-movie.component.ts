@@ -12,8 +12,9 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./info-movie.component.scss'],
 })
 export class InfoMovieComponent {
-  movieSelectedNull$ = this.store.movieSelected$.pipe(
-    filter((movie) => movie == null)
+  url$ = this.store.movieSelected$.pipe(
+    filter((movie) => movie == null),
+    map(() => '/')
   );
   movieNotNull$ = this.store.movieSelected$.pipe(
     filter((movie) => movie != null)
