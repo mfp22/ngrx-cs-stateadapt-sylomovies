@@ -1,3 +1,4 @@
+<app-navigate [url]="url$ | async"></app-navigate>
 <div class="header">
   <div class="content">
     <div class="sub_media">
@@ -36,8 +37,18 @@
           type="submit"
           value="Buscar"
           class="submit"
-          (click)="onSubmit()"
+          (click)="search$.next([form.valid, form.value.search])"
         />
+        <app-swal
+          [options]="{
+            title: 'Incorrecto',
+            text: 'Debes ingresar al menos dos caracteres para hacer una búsqueda..',
+            icon: 'warning',
+            dangerMode: true
+          }"
+          [show]="invalidAlertOpen.state$ | async"
+          (close)="invalidAlertOpen.setFalse()"
+        ></app-swal>
       </form>
     </div>
   </div>

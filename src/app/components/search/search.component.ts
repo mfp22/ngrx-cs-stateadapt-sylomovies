@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { AppStore } from 'src/app/store/app.store';
 
@@ -10,7 +10,11 @@ import { AppStore } from 'src/app/store/app.store';
 })
 export class SearchComponent implements OnInit {
   header!: string;
-  constructor(private store: AppStore, private router: Router) {}
+  constructor(
+    private store: AppStore,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
     this.store.state$.subscribe((res) => {
@@ -23,8 +27,8 @@ export class SearchComponent implements OnInit {
   }
 
   initialice() {
-    this.store.state$.subscribe((res: any) => {
-      this.header = res.header.search.toUpperCase();
+    this.route.params.subscribe((params) => {
+      this.header = params['search'];
     });
   }
 }

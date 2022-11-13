@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { filter, map, Observable, pairwise, tap } from 'rxjs';
+import { filter, map, merge, Observable, pairwise, switchMap } from 'rxjs';
 import { MovieModel } from 'src/app/models/movie.interface';
+import { environment } from 'src/environments/environment';
+import { HeaderService } from '../services/header-service/header.service';
 import { ReactiveStore } from './reactive-store';
 
 export interface OrderState {
@@ -9,32 +11,60 @@ export interface OrderState {
   movieSelected: MovieModel | null;
   search: MovieModel[];
   flag: boolean;
-  header: string;
 }
 
 @Injectable()
 export class AppStore extends ReactiveStore<OrderState> {
-  constructor(private router: Router) {
+  constructor(private router: Router, private headerService: HeaderService) {
     super({
       movies: [],
       movieSelected: null,
       search: [],
       flag: false,
-      header: '',
     });
 
-    const urlFromMovieDetailToHome$ = this.router.events.pipe(
+    const urlAfterNav$ = this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map((event) => event.url)
+    );
+
+    const urlFromMovieDetailToHome$ = urlAfterNav$.pipe(
       pairwise(),
       filter(
         ([before, after]) =>
-          before.url === '/movie' && ['/home', '/'].includes(after.url)
+          before === '/movie' && ['/home', '/'].includes(after)
+      )
+    );
+
+    const searchRoute$ = urlAfterNav$.pipe(
+      filter((url) => url.startsWith('/search'))
+    );
+
+    const searchResults$ = searchRoute$.pipe(
+      switchMap((url) => {
+        const [, search] = url.split('/search/');
+        return this.headerService.searchMovies({ search });
+      }),
+      map((res: any) =>
+        res.results.map((movie: any) => ({
+          ...movie,
+          poster_path:
+            movie.poster_path !== null
+              ? `${environment.imageUrl}${movie.poster_path}`
+              : 'assets/no-image.png',
+        }))
       )
     );
 
     this.react<AppStore>(this, {
-      deleteMovies: urlFromMovieDetailToHome$.pipe(map(() => undefined)),
-      switchFlag: urlFromMovieDetailToHome$.pipe(map(() => false)),
+      deleteMovies: merge(urlFromMovieDetailToHome$, searchRoute$).pipe(
+        map(() => undefined)
+      ),
+      saveSearch: searchResults$,
+      switchFlag: merge(
+        urlFromMovieDetailToHome$.pipe(map(() => false)),
+        searchRoute$.pipe(map(() => true))
+      ),
     });
   }
   saveMovies = this.updater((state: OrderState, movies: MovieModel[]) => ({
@@ -45,11 +75,6 @@ export class AppStore extends ReactiveStore<OrderState> {
   switchFlag = this.updater((state: OrderState, flag: boolean) => ({
     ...state,
     flag: flag,
-  }));
-
-  saveSearchHeader = this.updater((state: OrderState, header: string) => ({
-    ...state,
-    header: header,
   }));
 
   saveSearch = this.updater((state: OrderState, search: MovieModel[]) => ({
@@ -71,7 +96,6 @@ export class AppStore extends ReactiveStore<OrderState> {
     movieSelected: movie,
   }));
   flag$ = this.select((state) => state.flag);
-  header$ = this.select((state) => state.header);
   movies$: Observable<MovieModel[]> = this.select((state) => state.movies);
   movieSelected$: Observable<MovieModel | null> = this.select(
     (state) => state.movieSelected
