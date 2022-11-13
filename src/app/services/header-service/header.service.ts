@@ -20,7 +20,7 @@ export class HeaderService {
     });
   }
 
-  searchMovies(query: string) {
+  searchMovies(query: { search: string }) {
     return this.http.get(
       `${this.searchUrl}${this.apiKey}${this.language}&query=${query.search}`
     );
