@@ -18,6 +18,8 @@ import { SearchComponent } from './components/search/search.component';
 import { ResultsComponent } from './components/results/results.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { NavigateComponent } from './components/navigate.component';
+import { SwalComponent } from './components/swal.component';
+import { defaultStoreProvider } from '@state-adapt/angular';
 
 @NgModule({
   declarations: [
@@ -42,8 +44,9 @@ import { NavigateComponent } from './components/navigate.component';
     NgbModule,
     FormsModule,
     NavigateComponent,
+    SwalComponent,
   ],
-  providers: [],
+  providers: [defaultStoreProvider],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
