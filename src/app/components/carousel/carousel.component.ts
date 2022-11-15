@@ -25,7 +25,7 @@ export class CarouselComponent {
 
   pausedAdapter = buildAdapter<boolean>()(booleanAdapter)({
     interval: (s) => (s.state ? 9999999 : this.config.interval),
-  })(() => ({}))();
+  })();
 
   slideChange$ = new Subject<NgbSlideEvent>();
   arrow$ = this.slideChange$.pipe(
