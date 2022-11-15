@@ -20,7 +20,7 @@ const routes: Routes = [
     component: SingleMovieComponent,
   },
   {
-    path: 'search/:query',
+    path: 'search/:search',
     component: SearchComponent,
   },
 ];

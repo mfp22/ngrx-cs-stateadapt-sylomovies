@@ -13,6 +13,6 @@ export class ResultsComponent {
   headerService = inject(HeaderService);
 
   movies$ = this.route.params.pipe(
-    switchMap(({ query }) => this.headerService.searchMovies({ search: query }))
+    switchMap(({ search }) => this.headerService.searchMovies({ search }))
   );
 }
