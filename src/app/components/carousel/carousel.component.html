@@ -1,28 +1,28 @@
 <div class="container-carousel">
   <img src="assets/cartelera.png" alt="cartelera" class="cart-img" />
 </div>
-<div class="img-container">
+<div class="img-container" *ngIf="movies$ | async; let movies">
   <div class="carousel-cont">
     <ngb-carousel
       #carousel
-      [interval]="3000"
-      [pauseOnHover]="pauseOnHover"
-      [pauseOnFocus]="pauseOnFocus"
-      (slide)="onSlide($event)"
+      [interval]="(paused.interval$ | async) || config.interval"
+      [pauseOnHover]="config.pauseOnHover"
+      [pauseOnFocus]="config.pauseOnFocus"
+      (slide)="slideChange$.next($event)"
     >
       <ng-template ngbSlide *ngFor="let movie of movies; index as i">
         <div class="movie-title-container">
           <div class="carousel-caption">
-            <h2 class="">{{ movies[i].original_title }}</h2>
+            <h2 class="">{{ movie.original_title }}</h2>
           </div>
         </div>
         <div
           class="img-container mx-auto d-block"
-          (click)="openMovieDetails(i)"
+          [routerLink]="['/movie/' + movie.id]"
         >
           <img
             [src]="movie.poster_path"
-            alt="{{ this.movies[i].overview }}"
+            alt="{{ this.movie.overview }}"
             class="movie-img rounded mx-auto d-block"
           />
         </div>
@@ -34,13 +34,13 @@
   <div class="form-check container-check">
     <button
       type="button"
-      (click)="togglePaused()"
+      (click)="paused.toggle()"
       class="btn btn-outline-dark btn-sm"
     >
       {{ paused ? "Girar" : "Pausar" }}
     </button>
   </div>
   <div>
-    <app-movies-list></app-movies-list>
+    <app-movies-list [movies]="movies"></app-movies-list>
   </div>
 </div>

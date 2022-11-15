@@ -1,89 +1,53 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
-import {
-  NgbCarousel,
-  NgbSlideEvent,
-  NgbSlideEventSource,
-} from '@ng-bootstrap/ng-bootstrap';
-import { MovieModel } from 'src/app/models/movie.interface';
-
+import { Component, inject } from '@angular/core';
+import { NgbSlideEvent, NgbSlideEventSource } from '@ng-bootstrap/ng-bootstrap';
+import { adapt } from '@state-adapt/angular';
+import { buildAdapter } from '@state-adapt/core';
+import { booleanAdapter } from '@state-adapt/core/adapters';
+import { toSource } from '@state-adapt/rxjs';
+import { filter, Subject } from 'rxjs';
 import { CarouselServiceService } from 'src/app/services/carousel-service/carousel-service.service';
-import { AppStore } from 'src/app/store/app.store';
-import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-carousel',
   templateUrl: './carousel.component.html',
   styleUrls: ['./carousel.component.scss'],
 })
-export class CarouselComponent implements OnInit {
-  movies: MovieModel[] = [];
-  paused = false;
-  readonly unpauseOnArrow = false;
-  readonly pauseOnIndicator = false;
-  readonly pauseOnHover = true;
-  readonly pauseOnFocus = true;
-  readonly imageUrl = environment.imageUrl;
+export class CarouselComponent {
+  config = {
+    interval: 3000,
+    unpauseOnArrow: false,
+    pauseOnIndicator: false,
+    pauseOnHover: true,
+    pauseOnFocus: true,
+  };
 
-  @ViewChild('carousel', { static: true }) carousel!: NgbCarousel;
-  constructor(
-    private router: Router,
-    private carouselService: CarouselServiceService,
-    private store: AppStore
-  ) {}
+  movies$ = inject(CarouselServiceService).getNowPlaying();
 
-  ngOnInit(): void {
-    this.store.state$.subscribe((res) => {
-      if (res.movies.length > 0) {
-        this.movies = res.movies;
-      } else {
-        this.carouselInit();
-      }
-    });
-  }
+  pausedAdapter = buildAdapter<boolean>()(booleanAdapter)({
+    interval: (s) => (s.state ? 9999999 : this.config.interval),
+  })(() => ({}))();
 
-  carouselInit() {
-    this.carouselService.getNowPlaying().subscribe((data) => {
-      this.movies = data.results;
-      this.movies.map((element: any) => {
-        element.poster_path = `${this.imageUrl}${element.poster_path}`;
-      });
-      this.store.saveMovies(this.movies);
-    });
-  }
-  catch(err: any) {
-    console.log(err);
-  }
+  slideChange$ = new Subject<NgbSlideEvent>();
+  arrow$ = this.slideChange$.pipe(
+    filter(
+      (event) =>
+        this.config.unpauseOnArrow &&
+        (event.source === NgbSlideEventSource.ARROW_LEFT ||
+          event.source === NgbSlideEventSource.ARROW_RIGHT)
+    ),
+    toSource('carousel.paused arrow$')
+  );
+  indicator$ = this.slideChange$.pipe(
+    filter(
+      (event) =>
+        this.config.pauseOnIndicator &&
+        event.source === NgbSlideEventSource.INDICATOR
+    ),
+    toSource('carousel.paused indicator$')
+  );
 
-  togglePaused() {
-    if (this.paused) {
-      this.carousel.cycle();
-    } else {
-      this.carousel.pause();
-    }
-    this.paused = !this.paused;
-  }
-
-  onSlide(slideEvent: NgbSlideEvent) {
-    if (
-      this.unpauseOnArrow &&
-      slideEvent.paused &&
-      (slideEvent.source === NgbSlideEventSource.ARROW_LEFT ||
-        slideEvent.source === NgbSlideEventSource.ARROW_RIGHT)
-    ) {
-      this.togglePaused();
-    }
-    if (
-      this.pauseOnIndicator &&
-      !slideEvent.paused &&
-      slideEvent.source === NgbSlideEventSource.INDICATOR
-    ) {
-      this.togglePaused();
-    }
-  }
-
-  openMovieDetails(index: number) {
-    this.store.saveMovieSelected(this.movies[index]);
-    this.router.navigate(['/movie']);
-  }
+  paused = adapt(['carousel.paused', false, this.pausedAdapter], {
+    setFalse: this.arrow$,
+    setTrue: this.indicator$,
+  });
 }

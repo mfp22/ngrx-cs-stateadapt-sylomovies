@@ -3,7 +3,7 @@
   <main class="search-main">
     <div class="header">
       <h1 class="header__title">
-        BUSCAR: <span>{{ this.header }}</span>
+        BUSCAR: <span>{{ header$ | async }}</span>
       </h1>
     </div>
     <app-results></app-results>

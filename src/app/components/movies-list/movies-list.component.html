@@ -1,12 +1,17 @@
-<div class="movie-list-cont">
-  <div *ngFor="let movie of movies; let i = index" class="movie-card-container">
-    <app-card
-      [movie]="movie"
-      [index]="i"
-      (click)="openMovieDetails(i)"
-    ></app-card>
+<ng-container *ngIf="movies">
+  <div class="movie-list-cont">
+    <div
+      *ngFor="let movie of movies; let i = index"
+      class="movie-card-container"
+    >
+      <app-card
+        [movie]="movie"
+        [index]="i"
+        [routerLink]="['/movie/' + movies[i].id]"
+      ></app-card>
+    </div>
   </div>
-</div>
-<div class="footer-cont" *ngIf="movies.length > 0">
-  <app-footer></app-footer>
-</div>
+  <div class="footer-cont" *ngIf="movies.length > 0">
+    <app-footer></app-footer>
+  </div>
+</ng-container>

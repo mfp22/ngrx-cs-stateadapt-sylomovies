@@ -1,13 +1,18 @@
-import { Component, OnInit } from '@angular/core';
-import { AppStore } from 'src/app/store/app.store';
+import { Component, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { switchMap } from 'rxjs';
+import { HeaderService } from 'src/app/services/header-service/header.service';
 
 @Component({
   selector: 'app-results',
   templateUrl: './results.component.html',
   styleUrls: ['./results.component.scss'],
 })
-export class ResultsComponent implements OnInit {
-  constructor(private store: AppStore) {}
+export class ResultsComponent {
+  route = inject(ActivatedRoute);
+  headerService = inject(HeaderService);
 
-  ngOnInit(): void {}
+  movies$ = this.route.params.pipe(
+    switchMap(({ query }) => this.headerService.searchMovies({ search: query }))
+  );
 }

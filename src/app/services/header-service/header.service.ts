@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
+import { map } from 'rxjs';
 
-import { AppStore } from 'src/app/store/app.store';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -21,11 +21,20 @@ export class HeaderService {
   }
 
   searchMovies(query: { search: string }) {
-    return this.http.get(
-      `${this.searchUrl}${this.apiKey}${this.language}&query=${query.search}`
-    );
-  }
-  catch(err: any) {
-    console.log(err);
+    return this.http
+      .get(
+        `${this.searchUrl}${this.apiKey}${this.language}&query=${query.search}`
+      )
+      .pipe(
+        map((res: any) =>
+          res.results.map((movie: any) => ({
+            ...movie,
+            poster_path:
+              movie.poster_path !== null
+                ? `${environment.imageUrl}${movie.poster_path}`
+                : 'assets/no-image.png',
+          }))
+        )
+      );
   }
 }

@@ -1,9 +1,8 @@
-import { Component } from '@angular/core';
-import { filter, map, Observable, switchMap } from 'rxjs';
+import { Component, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { filter, map, switchMap } from 'rxjs';
 
-import { MovieModel } from 'src/app/models/movie.interface';
 import { SingleMovieService } from 'src/app/services/single-movie/single-movie.service';
-import { AppStore } from 'src/app/store/app.store';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -12,16 +11,12 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./info-movie.component.scss'],
 })
 export class InfoMovieComponent {
-  url$ = this.store.movieSelected$.pipe(
-    filter((movie) => movie == null),
-    map(() => '/')
-  );
-  movieNotNull$ = this.store.movieSelected$.pipe(
-    filter((movie) => movie != null)
-  ) as Observable<MovieModel>;
+  singleMovieService = inject(SingleMovieService);
+  route = inject(ActivatedRoute);
 
-  movie$ = this.movieNotNull$.pipe(
-    switchMap((movie) => this.singleMovie.getMovieDetails(movie.id)),
+  movie$ = this.route.params.pipe(
+    switchMap(({ id }) => this.singleMovieService.getMovieDetails(+id)),
+    filter((movie) => movie != null),
     map((data: any) => ({
       ...data,
       poster_path: `${environment.imageUrl}${data.poster_path}`,
@@ -30,7 +25,7 @@ export class InfoMovieComponent {
 
   cast$ = this.movie$.pipe(
     switchMap((movie) =>
-      this.singleMovie.getCast(movie.id).pipe(
+      this.singleMovieService.getCast(movie.id).pipe(
         map((data: any) =>
           (Array.from(data.cast) as any[])
             .filter((c) => c.profile_path != null)
@@ -42,9 +37,4 @@ export class InfoMovieComponent {
       )
     )
   );
-
-  constructor(
-    private store: AppStore,
-    private singleMovie: SingleMovieService
-  ) {}
 }

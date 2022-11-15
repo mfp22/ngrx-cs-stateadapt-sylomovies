@@ -16,7 +16,7 @@ const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path: 'movie',
+    path: 'movie/:id',
     component: SingleMovieComponent,
   },
   {
