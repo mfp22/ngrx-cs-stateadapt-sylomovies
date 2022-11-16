@@ -8,6 +8,8 @@ import { map } from 'rxjs';
   styleUrls: ['./search.component.scss'],
 })
 export class SearchComponent {
-  header$ = this.route.params.pipe(map((params) => params['search']));
+  header$ = this.route.params.pipe(
+    map((params) => params['search'].toUpperCase())
+  );
   constructor(private route: ActivatedRoute) {}
 }
